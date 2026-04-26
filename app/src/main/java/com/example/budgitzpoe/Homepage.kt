@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.layout.ContentScale
 import com.example.budgitzpoe.ui.theme.Acid
 import com.example.budgitzpoe.ui.theme.DarkGreen
 import com.example.budgitzpoe.ui.theme.DeepRed
@@ -41,7 +42,8 @@ fun homescreen (){
             val(nameRow,list,topbar,bottombox,card) = createRefs()
 
             Image(painter = painterResource(id = R.drawable.topbar),null,
-                modifier = Modifier.constrainAs(topbar){
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier.fillMaxWidth().constrainAs(topbar){
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -123,6 +125,7 @@ fun homescreen (){
                 Image(
                     painter = painterResource(id = R.drawable.bottombar),
                     contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -179,7 +182,7 @@ fun TransactionItem(amount: Int, type: String, category: String) {
 
     Column(
         modifier = Modifier
-            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .padding(vertical = 12.dp, horizontal = 16.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
             .background(backgroundColor)
