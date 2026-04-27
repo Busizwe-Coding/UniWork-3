@@ -50,9 +50,15 @@ fun ExportScreen() {
             //export button
             Column(
                 modifier = Modifier
-                    .padding(top = 240.dp, start = 30.dp, end = 30.dp)
-                    .constrainAs(content) { top.linkTo(parent.top) },
-                verticalArrangement = Arrangement.spacedBy(30.dp)
+                    .width(350.dp)
+                    .constrainAs(content) {
+                        top.linkTo(topbar.bottom)
+                        bottom.linkTo(bottombox.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    },
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
                 ExportOption("Export as .csv")

@@ -24,6 +24,8 @@ class MainActivity : ComponentActivity() {
                 {
                         homescreen()
                         WalletScreen()
+                        ExportScreen()
+                    previewExpenseScreen()
                 }
             }
         }
