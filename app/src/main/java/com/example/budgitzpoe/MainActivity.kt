@@ -40,7 +40,13 @@ class MainActivity : ComponentActivity() {
                             onMenuClick = { menuOpen = true }
                         )
 
-                        "add" -> AddExpenseScreen()
+                        "add" -> AddExpenseScreen(
+                            onCancel = { screen = "home" },
+                            onSave = {
+                                TransactionStore.transactions.add(it)
+                                screen = "home"
+                            }
+                        )
                         "wallet" -> WalletScreen()
                         "export" -> ExportScreen()
                     }

@@ -1,17 +1,23 @@
 package com.example.budgitzpoe
 
+import android.R.attr.description
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,6 +31,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.budgitzpoe.ui.theme.Acid
@@ -33,14 +42,69 @@ import com.example.budgitzpoe.ui.theme.DarkGreen
 import com.example.budgitzpoe.ui.theme.DeepRed
 
 @Composable
-fun AddExpenseScreen() {
+fun AddExpenseScreen(
+    onCancel: () -> Unit,
+    onSave: (Transaction) -> Unit
+) {
+
+    var selectedTab by remember { mutableStateOf("Expense") }
+    var selectedAccount by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("") }
+    var selectedWallet by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var amountText by remember { mutableStateOf("0") }
+
+    var showCategoryPicker by remember { mutableStateOf(false) }
+    var categoryOptions by remember { mutableStateOf(listOf<String>()) }
+
+    val context = LocalContext.current
+
+    var selectedImageUri by remember { mutableStateOf<String?>(null) }
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        selectedImageUri = uri?.toString()
+    }
+
+    // FIXED!!!: reset category when switching tabs
+    LaunchedEffect(selectedTab) {
+        selectedCategory = ""
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Charcoal) {
+
         ConstraintLayout(modifier = Modifier.fillMaxSize()) {
 
             val (topbar, content) = createRefs()
 
             topHeaders(
+                selectedTab = selectedTab,
+                onTabChange = {
+                    selectedTab = it
+                    selectedCategory = ""
+                },
+                onCancel = onCancel,
+                onSave = {
+
+                    val type = when (selectedTab) {
+                        "Income" -> "Income"
+                        "Transfer" -> "Savings"
+                        else -> "Debited"
+                    }
+
+                    val newTransaction = Transaction(
+                        amount = amountText.toIntOrNull() ?: 0,
+                        type = type,
+                        category = selectedCategory,
+                        date = "27/04/26",
+                        description = description,
+                        imageUri = selectedImageUri
+                    )
+
+                    onSave(newTransaction)
+                    selectedImageUri = null
+                },
                 modifier = Modifier.constrainAs(topbar) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
@@ -58,39 +122,97 @@ fun AddExpenseScreen() {
 
                 Spacer(Modifier.height(8.dp))
 
-                // Account, Category side by side
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    FieldBoxWithPlus("ACCOUNT", Modifier.weight(1f).padding(end = 6.dp))
-                    FieldBoxWithPlus("CATEGORY", Modifier.weight(1f).padding(start = 6.dp))
+                if (selectedTab == "Income") {
+
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+
+                        FieldBoxWithPlus("WALLET", selectedWallet) {
+                            selectedWallet = walletPicker()
+                        }
+
+                        FieldBoxWithPlus("CATEGORY", selectedCategory) {
+                            categoryOptions = listOf("Salary", "Savings", "Birthday", "Freelancing")
+                            showCategoryPicker = true
+                        }
+                    }
+
+                } else {
+
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+
+                        FieldBoxWithPlus("ACCOUNT", selectedAccount) {
+                            selectedAccount = walletPicker()
+                        }
+
+                        FieldBoxWithPlus("CATEGORY", selectedCategory) {
+                            categoryOptions = listOf("Social", "Food", "Transport")
+                            showCategoryPicker = true
+                        }
+
+                        FieldBoxWithPlus("IMAGE", "ADD") {
+                            imagePicker.launch("image/*")
+                        }
+                    }
                 }
 
                 Spacer(Modifier.height(8.dp))
 
-                // DESCRIPTION full width
-                DescriptionBox()
+                DescriptionBox(
+                    text = description,
+                    onChange = { description = it }
+                )
 
                 Spacer(Modifier.height(8.dp))
 
-                // Amount display with backspace
-                AmountBox()
+                AmountBox(
+                    amountText = amountText,
+                    onBackspace = {
+                        amountText = amountText.dropLast(1)
+                        if (amountText.isEmpty()) amountText = "0"
+                    }
+                )
 
                 Spacer(Modifier.height(12.dp))
 
-                CalculatorPad()
+                CalculatorPad { key ->
+                    if (key == "=") return@CalculatorPad
+                    if (amountText == "0") amountText = ""
+                    amountText += key
+                }
             }
+        }
+
+        if (showCategoryPicker) {
+            CategoryPickerDialog(
+                options = categoryOptions,
+                onSelect = {
+                    selectedCategory = it
+                    showCategoryPicker = false
+                },
+                onAddNew = {
+                    selectedCategory = it
+                    showCategoryPicker = false
+                },
+                onDismiss = { showCategoryPicker = false }
+            )
         }
     }
 }
 
 @Composable
-fun topHeaders(modifier: Modifier = Modifier) {
-
-    var selectedTab by remember { mutableStateOf("Expense") }
+fun topHeaders(
+    selectedTab: String,
+    onTabChange: (String) -> Unit,
+    onCancel: () -> Unit,
+    onSave: () -> Unit,
+    modifier: Modifier = Modifier
+) {
 
     Box(modifier = modifier.fillMaxWidth()) {
 
@@ -101,49 +223,39 @@ fun topHeaders(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth()
         )
 
+        //cancel and save buttons
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 48.dp)
+            modifier = Modifier.fillMaxWidth().padding(top = 48.dp)
         ) {
 
-            // CANCEL / SAVE row
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 15.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
                 Box(
                     modifier = Modifier
                         .border(4.dp, Color.Black, RoundedCornerShape(6.dp))
                         .padding(horizontal = 12.dp, vertical = 4.dp)
+                        .clickable { onCancel() }
                 ) {
-                    Text(
-                        "CANCEL",
-                        color = DeepRed,
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("CANCEL", color = DeepRed, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                 }
+
                 Box(
                     modifier = Modifier
                         .border(4.dp, Color.Black, RoundedCornerShape(6.dp))
                         .padding(horizontal = 12.dp, vertical = 4.dp)
+                        .clickable { onSave() }
                 ) {
-                    Text(
-                        "SAVE",
-                        color = DarkGreen,
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("SAVE", color = DarkGreen, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            // Income / Expense / Transfer tabs
+            //income, expense, transfer headers
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
@@ -153,7 +265,7 @@ fun topHeaders(modifier: Modifier = Modifier) {
                         fontSize = 22.sp,
                         color = if (selectedTab == tab) Charcoal else Charcoal.copy(alpha = 0.5f),
                         fontWeight = if (selectedTab == tab) FontWeight.Bold else FontWeight.Normal,
-                        modifier = Modifier.clickable() { selectedTab = tab }
+                        modifier = Modifier.clickable { onTabChange(tab) }
                     )
                 }
             }
@@ -161,93 +273,94 @@ fun topHeaders(modifier: Modifier = Modifier) {
     }
 }
 
+//the dropdown menus
 @Composable
-fun FieldBoxWithPlus(label: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            label,
-            color = Color.White,
-            fontSize = 15.sp,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
+fun FieldBoxWithPlus(label: String, value: String, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+        Text(label, color = Color.White, fontSize = 15.sp)
+
         Box(
             modifier = Modifier
-                .width(170.dp)
+                .width(110.dp)
                 .height(60.dp)
-                .border(4.dp, Acid, RoundedCornerShape(12.dp)),
+                .border(4.dp, Acid, RoundedCornerShape(12.dp))
+                .clickable { onClick() },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_add_24),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
+
+            Text(
+                text = if (value.isBlank()) "+" else value,
+                color = Color.White,
+                fontSize = 18.sp
             )
         }
     }
 }
 
+//transaction description
 @Composable
-fun DescriptionBox() {
-    Column(Modifier.padding(horizontal = 16.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .border(4.dp, Acid, RoundedCornerShape(12.dp))
-                .background(Color(0xFF2A2A2A), RoundedCornerShape(12.dp))
-                .padding(13.dp)
-        ) {
-            Text("DESCRIPTION", color = Color.Gray, fontSize = 25.sp)
-        }
-    }
-}
+fun DescriptionBox(
+    text: String,
+    onChange: (String) -> Unit
+) {
 
-@Composable
-fun AmountBox() {
-    Box(
+    BasicTextField(
+        value = text,
+        onValueChange = onChange,
         modifier = Modifier
             .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+            .height(120.dp)
+            .background(Color(0xFF2A2A2A), RoundedCornerShape(12.dp))
+            .border(4.dp, Acid, RoundedCornerShape(12.dp))
+            .padding(12.dp)
+            .focusable(),
+        textStyle = TextStyle(
+            color = Color.White,
+            fontSize = 18.sp
+        ),
+        cursorBrush = SolidColor(Color.White)
+    )
+}
+
+//amount spent or gained
+@Composable
+fun AmountBox(amountText: String, onBackspace: () -> Unit) {
+    Box(
+        modifier = Modifier.padding(horizontal = 16.dp)
             .fillMaxWidth()
             .height(72.dp)
             .background(Color.White, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.CenterEnd
     ) {
         Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.End,
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "100",
+                amountText,
                 fontSize = 40.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.End
             )
-            Spacer(Modifier.width(12.dp))
             Box(
-                modifier = Modifier
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.clickable { onBackspace() }
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_backspace_24),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
         }
     }
 }
 
+//working calculator
 @Composable
-fun CalculatorPad() {
+fun CalculatorPad(onInput: (String) -> Unit) {
 
     val buttons = listOf(
         listOf("+", "7", "8", "9"),
@@ -256,39 +369,27 @@ fun CalculatorPad() {
         listOf("/", "0", ".", "=")
     )
 
-    val operatorKeys = setOf("+", "-", "X", "/", "=")
+    val operators = setOf("+", "-", "X", "/", "=")
 
-    Column(
-        modifier = Modifier.padding(horizontal = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    Column(Modifier.padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         buttons.forEach { row ->
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { label ->
-                    val isOperator = label in operatorKeys
+                    val isOperator = label in operators
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(1f)
-                            .then(
-                                if (isOperator)
-                                    Modifier.background(Acid, RoundedCornerShape(12.dp))
-                                else
-                                    Modifier
-                                        .background(Charcoal, RoundedCornerShape(12.dp))
-                                        .border(2.dp, Acid, RoundedCornerShape(12.dp))
-                            ),
+                            .background(
+                                color = if (isOperator) Acid else Charcoal,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .border(2.dp, Acid, RoundedCornerShape(12.dp))
+                            .clickable { onInput(label) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            label,
-                            fontSize = 40.sp,
-                            color = if (isOperator) Charcoal else Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(label, fontSize = 40.sp, color = if (isOperator) Color.Black else Color.White,
+                            fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -296,8 +397,69 @@ fun CalculatorPad() {
     }
 }
 
+//pick from current wallets
+fun walletPicker() = listOf("MAIN", "EMERGENCY", "SAVINGS").random()
 @Composable
+fun CategoryPickerDialog(
+    options: List<String>,
+    onSelect: (String) -> Unit,
+    onAddNew: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+
+    //add category
+    var newCategory by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Category") },
+        text = {
+
+            Column {
+
+                options.forEach {
+                    Text(
+                        text = it,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(it) }
+                            .padding(10.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                //user added category
+                BasicTextField(
+                    value = newCategory,
+                    onValueChange = { newCategory = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color.Gray)
+                        .padding(8.dp)
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Add New",
+                    modifier = Modifier
+                        .clickable {
+                            if (newCategory.isNotBlank()) {
+                                onAddNew(newCategory)
+                            }
+                        }
+                        .padding(8.dp)
+                )
+            }
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
 @Preview(showBackground = true)
+@Composable
 fun previewExpenseScreen() {
-    AddExpenseScreen()
+    AddExpenseScreen(onCancel = {}, onSave = {})
 }

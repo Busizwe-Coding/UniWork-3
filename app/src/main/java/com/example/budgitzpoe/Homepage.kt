@@ -61,6 +61,7 @@ fun homescreen(
 
                 val (nameRow, topbar, bottombox, card, addBtn) = createRefs()
 
+                //header
                 Image(
                     painter = painterResource(id = R.drawable.topbar),
                     contentDescription = null,
@@ -91,6 +92,7 @@ fun homescreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        //top money calculator
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -192,7 +194,11 @@ fun homescreen(
             selectedTransaction?.let {
                 TransactionDetailsCard(
                     transaction = it,
-                    onDismiss = { selectedTransaction = null }
+                    onDismiss = { selectedTransaction = null },
+                    onDelete = { tx ->
+                        TransactionStore.transactions.remove(tx)
+                        selectedTransaction = null
+                    }
                 )
             }
         }
@@ -206,17 +212,20 @@ fun TransactionItem(
     onClick: () -> Unit
 ) {
 
-    val backgroundColor = when (transaction.type.lowercase()) {
-        "credited" -> Color.Green
-        "income" -> Color.White
-        "savings" -> Color.White
+    val isIncome = transaction.type.equals("Income", true)
+
+    val backgroundColor = when {
+        isIncome && transaction.category.equals("Salary", true) -> Color.White
+        isIncome && transaction.category.equals("Savings", true) -> Color.White
+        isIncome -> Color.Green
+        transaction.type.equals("Credited", true) -> Color.Green
+        transaction.type.equals("Savings", true) -> Color.White
         else -> Color.Red
     }
 
-    val textColor = when (transaction.type.lowercase()) {
-        "credited" -> DarkGreen
-        "income" -> Color.Black
-        "savings" -> Color.Black
+    val textColor = when (backgroundColor) {
+        Color.White -> Color.Black
+        Color.Green -> DarkGreen
         else -> Color.White
     }
 
@@ -257,15 +266,7 @@ fun TransactionsList(
     onTransactionClick: (Transaction) -> Unit
 ) {
 
-    val transactions = listOf(
-        Transaction(1000, "Debited", "Social", "27/04/26", "Went to a party"),
-        Transaction(3000, "Income", "Salary", "26/04/26", "Monthly salary"),
-        Transaction(300, "Debited", "Food", "25/04/26", "Groceries"),
-        Transaction(150, "Debited", "Transport", "24/04/26", "Uber ride"),
-        Transaction(500, "Credited", "Freelance", "23/04/26", "Design work"),
-        Transaction(800, "Credited", "Birthday", "22/04/26", "Gift money"),
-        Transaction(400, "Savings", "Savings", "21/04/26", "Saved money")
-    )
+    val transactions = TransactionStore.transactions
 
     LazyColumn(modifier = modifier) {
         items(transactions) { item ->

@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.example.budgitzpoe.ui.theme.DarkGreen
 
 data class Transaction(
@@ -29,31 +30,36 @@ data class Transaction(
     val category: String,
     val date: String,
     val description: String,
-    val imageRes: Int? = null
+    val imageUri: String? = null
 )
 
 //the literal card popup
 @Composable
 fun TransactionDetailsCard(
     transaction: Transaction,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onDelete: (Transaction) -> Unit
 ) {
 
     //colour of cards
-    val backgroundColor = when (transaction.type.lowercase()) {
-        "credited" -> Color.Green
-        "income" -> Color.White
-        "savings" -> Color.White
+    val isIncome = transaction.type.equals("Income", true)
+
+    val backgroundColor = when {
+        isIncome && transaction.category.equals("Salary", true) -> Color.White
+        isIncome && transaction.category.equals("Savings", true) -> Color.White
+        isIncome -> Color.Green
+        transaction.type.equals("Credited", true) -> Color.Green
+        transaction.type.equals("Savings", true) -> Color.White
         else -> Color.Red
     }
 
-    val textColor = when (transaction.type.lowercase()) {
-        "credited" -> DarkGreen
-        "income" -> Color.Black
-        "savings" -> Color.Black
+    val textColor = when (backgroundColor) {
+        Color.White -> Color.Black
+        Color.Green -> DarkGreen
         else -> Color.White
     }
 
+    //look of cards
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -94,9 +100,9 @@ fun TransactionDetailsCard(
                 contentAlignment = Alignment.Center
             ) {
 
-                if (transaction.imageRes != null) {
+                if (transaction.imageUri != null) {
                     Image(
-                        painter = painterResource(id = transaction.imageRes),
+                        painter = rememberAsyncImagePainter(transaction.imageUri),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -104,6 +110,22 @@ fun TransactionDetailsCard(
                 } else {
                     Text("NO IMAGE", color = textColor)
                 }
+
+            }
+            Spacer(Modifier.height(16.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Red, RoundedCornerShape(8.dp))
+                    .clickable {
+                        onDelete(transaction)
+                        onDismiss()
+                    }
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("DELETE TRANSACTION", color = Color.White)
             }
         }
     }
