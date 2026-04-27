@@ -53,7 +53,11 @@ class MainActivity : ComponentActivity() {
                             onExport = { screen = "export" },
                             onMenuClick = { menuOpen = true }
                         )
-                        "export" -> ExportScreen()
+                        "export" -> ExportScreen(
+                            onMenuClick = { menuOpen = true },
+                            onRecords = { screen = "home" },
+                            onWallets = { screen = "wallet" }
+                        )
                     }
 
                     menuDrawer(

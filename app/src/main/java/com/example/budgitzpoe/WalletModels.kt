@@ -171,4 +171,9 @@ object WalletStore {
             wallets[index] = updated
         }
     }
+
+    fun hasSufficientBalance(walletName: String, amount: Int): Boolean {
+        val wallet = wallets.firstOrNull { it.name == walletName }
+        return wallet != null && wallet.balance >= amount
+    }
 }

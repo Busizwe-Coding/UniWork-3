@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -22,7 +23,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.budgitzpoe.ui.theme.Acid
 
 @Composable
-fun ExportScreen() {
+fun ExportScreen(
+    onMenuClick: () -> Unit,
+    onRecords: () -> Unit,
+    onWallets: () -> Unit
+) {
 
     Surface(modifier = Modifier.fillMaxSize(), color = Acid) {
         ConstraintLayout(modifier = Modifier.fillMaxSize()) {
@@ -44,7 +49,8 @@ fun ExportScreen() {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                }
+                },
+                onMenuClick = onMenuClick  // Pass the function
             )
 
             //export button
@@ -69,6 +75,7 @@ fun ExportScreen() {
                 Button(
                     onClick = { },
                     modifier = Modifier.width(200.dp).height(60.dp)
+                        .padding(top = 10.dp)
                         .align(alignment = Alignment.CenterHorizontally),
                     colors = ButtonDefaults.buttonColors(Color.Black)
                 ) {
@@ -98,8 +105,16 @@ fun ExportScreen() {
                         .align(Alignment.Center),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Image(painterResource(R.drawable.recordsicon), null)
-                    Image(painterResource(R.drawable.walletsicon), null)
+                    Image(
+                        painter = painterResource(R.drawable.recordsicon),
+                        contentDescription = "Records",
+                        modifier = Modifier.clickable { onRecords() }  // Goes to homescreen
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.walletsicon),
+                        contentDescription = "Wallets",
+                        modifier = Modifier.clickable { onWallets() }  // Goes to walletscreen
+                    )
                     Image(painterResource(R.drawable.overviewicon), null)
                     Image(painterResource(R.drawable.exporticon), null)
                 }
@@ -109,7 +124,10 @@ fun ExportScreen() {
 }
 
 @Composable
-fun topHeader(modifier: Modifier) {
+fun topHeader(
+    modifier: Modifier,
+    onMenuClick: () -> Unit  // Added this parameter
+) {
 
     //for income and expense
     Box(
@@ -118,6 +136,14 @@ fun topHeader(modifier: Modifier) {
             .padding(top = 75.dp, start = 16.dp, end = 16.dp)
 
     ) {
+
+        Image(
+            painter = painterResource(id = R.drawable.menuicon),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .clickable { onMenuClick() }  // Now this works
+        )
 
         Column {
 
@@ -143,12 +169,6 @@ fun topHeader(modifier: Modifier) {
             }
         }
 
-        Image(
-            painter = painterResource(id = R.drawable.menuicon),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-        )
     }
 }
 
@@ -158,7 +178,7 @@ fun ExportOption(text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 30.dp)
+            .padding(top = 50.dp)
             .height(80.dp)
             .background(Color.Black, RoundedCornerShape(20.dp)),
         contentAlignment = Alignment.Center
@@ -168,7 +188,11 @@ fun ExportOption(text: String) {
 }
 
 @Composable
-@Preview (showBackground = true)
-fun previewExportscreen (){
-    ExportScreen()
+@Preview(showBackground = true)
+fun previewExportScreen() {
+    ExportScreen(
+        onMenuClick = { },
+        onRecords = { },
+        onWallets = { }
+    )
 }

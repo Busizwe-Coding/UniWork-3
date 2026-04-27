@@ -40,6 +40,9 @@ import com.example.budgitzpoe.ui.theme.Acid
 import com.example.budgitzpoe.ui.theme.Charcoal
 import com.example.budgitzpoe.ui.theme.DarkGreen
 import com.example.budgitzpoe.ui.theme.DeepRed
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun AddExpenseScreen(
@@ -57,6 +60,8 @@ fun AddExpenseScreen(
     var showCategoryPicker by remember { mutableStateOf(false) }
     var categoryOptions by remember { mutableStateOf(listOf<String>()) }
 
+    var showWalletPicker by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
 
     var selectedImageUri by remember { mutableStateOf<String?>(null) }
@@ -67,7 +72,6 @@ fun AddExpenseScreen(
         selectedImageUri = uri?.toString()
     }
 
-    // FIXED!!!: reset category when switching tabs
     LaunchedEffect(selectedTab) {
         selectedCategory = ""
     }
@@ -86,6 +90,16 @@ fun AddExpenseScreen(
                 },
                 onCancel = onCancel,
                 onSave = {
+                    val amount = amountText.toIntOrNull() ?: 0
+
+                    // Check if wallet balance is 0 for expense and transfer
+                    if (selectedTab != "Income") {
+                        val wallet = WalletStore.wallets.firstOrNull { it.name == selectedWallet }
+                        if (wallet != null && wallet.balance < amount) {
+                            // Show error or prevent save
+                            return@topHeaders
+                        }
+                    }
 
                     val type = when (selectedTab) {
                         "Income" -> "Income"
@@ -94,13 +108,16 @@ fun AddExpenseScreen(
                     }
 
                     val newTransaction = Transaction(
-                        amount = amountText.toIntOrNull() ?: 0,
+                        amount = amount,
                         type = type,
                         category = selectedCategory,
                         date = "27/04/26",
                         description = description,
                         imageUri = selectedImageUri
                     )
+
+                    // Update wallet balance
+                    updateWalletBalance(selectedWallet, amount, selectedTab)
 
                     onSave(newTransaction)
                     selectedImageUri = null
@@ -130,7 +147,7 @@ fun AddExpenseScreen(
                     ) {
 
                         FieldBoxWithPlus("WALLET", selectedWallet) {
-                            selectedWallet = walletPicker()
+                            showWalletPicker = true
                         }
 
                         FieldBoxWithPlus("CATEGORY", selectedCategory) {
@@ -146,12 +163,12 @@ fun AddExpenseScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
 
-                        FieldBoxWithPlus("ACCOUNT", selectedAccount) {
-                            selectedAccount = walletPicker()
+                        FieldBoxWithPlus("ACCOUNT", selectedWallet) {
+                            showWalletPicker = true
                         }
 
                         FieldBoxWithPlus("CATEGORY", selectedCategory) {
-                            categoryOptions = listOf("Social", "Food", "Transport")
+                            categoryOptions = listOf("Social", "Food", "Transport", "Shopping", "Bills")
                             showCategoryPicker = true
                         }
 
@@ -202,6 +219,33 @@ fun AddExpenseScreen(
                 onDismiss = { showCategoryPicker = false }
             )
         }
+
+        if (showWalletPicker) {
+            WalletPickerDialog(
+                onSelect = { walletName ->
+                    selectedWallet = walletName
+                    showWalletPicker = false
+                },
+                onDismiss = { showWalletPicker = false }
+            )
+        }
+    }
+}
+
+// Helper function to update wallet balance
+fun updateWalletBalance(walletName: String, amount: Int, tabType: String) {
+    val walletIndex = WalletStore.wallets.indexOfFirst { it.name == walletName }
+    if (walletIndex != -1) {
+        val currentWallet = WalletStore.wallets[walletIndex]
+        val newBalance = when (tabType) {
+            "Income" -> currentWallet.balance + amount
+            "Expense" -> currentWallet.balance - amount
+            "Transfer" -> currentWallet.balance - amount
+            else -> currentWallet.balance
+        }
+
+        val updatedWallet = currentWallet.copy(balance = newBalance)
+        WalletStore.wallets[walletIndex] = updatedWallet
     }
 }
 
@@ -210,7 +254,7 @@ fun topHeaders(
     selectedTab: String,
     onTabChange: (String) -> Unit,
     onCancel: () -> Unit,
-    onSave: () -> Unit,
+    onSave: () -> Unit,  // Keep as simple lambda
     modifier: Modifier = Modifier
 ) {
 
@@ -398,7 +442,37 @@ fun CalculatorPad(onInput: (String) -> Unit) {
 }
 
 //pick from current wallets
-fun walletPicker() = listOf("MAIN", "EMERGENCY", "SAVINGS").random()
+@Composable
+fun WalletPickerDialog(
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Wallet") },
+        text = {
+            Column {
+                WalletStore.wallets.forEach { wallet ->
+                    Text(
+                        text = "${wallet.name} (R${wallet.balance})",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(wallet.name) }
+                            .padding(12.dp),
+                        fontSize = 16.sp
+                    )
+                    Spacer(Modifier.height(4.dp))
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
 @Composable
 fun CategoryPickerDialog(
     options: List<String>,
@@ -456,6 +530,11 @@ fun CategoryPickerDialog(
         confirmButton = {},
         dismissButton = {}
     )
+}
+
+fun getCurrentDate(): String {
+    val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+    return dateFormat.format(Date())
 }
 
 @Preview(showBackground = true)

@@ -74,10 +74,7 @@ fun WalletScreen(
                             selectedWallet = wallet
                         }
                     ) {
-                        WalletCard(
-                            text = "${wallet.name}: R${wallet.balance}",
-                            color = wallet.color
-                        )
+                        WalletCard(wallet = wallet)  // Changed this line
                     }
                 }
 
@@ -186,16 +183,19 @@ fun TopHeader(
 
 //each wallet type decoration
 @Composable
-fun WalletCard(text: String, color: Color) {
+fun WalletCard(wallet: Wallet) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(90.dp)
             .border(3.dp, Color.Black, RoundedCornerShape(20.dp))
-            .background(color, RoundedCornerShape(20.dp)),
+            .background(wallet.color, RoundedCornerShape(20.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(wallet.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("R${wallet.balance}", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
