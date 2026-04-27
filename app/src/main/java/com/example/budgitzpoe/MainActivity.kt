@@ -47,7 +47,12 @@ class MainActivity : ComponentActivity() {
                                 screen = "home"
                             }
                         )
-                        "wallet" -> WalletScreen()
+                        "wallet" -> WalletScreen(
+                            onRecords = { screen = "home" },
+                            onWallets = { screen = "wallet" },
+                            onExport = { screen = "export" },
+                            onMenuClick = { menuOpen = true }
+                        )
                         "export" -> ExportScreen()
                     }
 

@@ -4,10 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -19,7 +26,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.budgitzpoe.ui.theme.Acid
 
 @Composable
-fun WalletScreen() {
+fun WalletScreen(
+    onRecords: () -> Unit,
+    onWallets: () -> Unit,
+    onExport: () -> Unit,
+    onMenuClick: () -> Unit
+) {
+
+    var selectedWallet by remember { mutableStateOf<Wallet?>(null) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -43,7 +57,8 @@ fun WalletScreen() {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                }
+                },
+                onMenuClick = onMenuClick
             )
 
             Column( //for each wallet type
@@ -53,13 +68,24 @@ fun WalletScreen() {
                 verticalArrangement = Arrangement.spacedBy(25.dp)
             ) {
 
-                WalletCard("MAIN: R500", Color.White)
-                WalletCard("SAVINGS: R30000", Color(0xFF39FF14))
-                WalletCard("EMERGENCY: R10000", Color.Red)
+                WalletStore.wallets.forEach { wallet ->
+                    Box(
+                        modifier = Modifier.clickable {
+                            selectedWallet = wallet
+                        }
+                    ) {
+                        WalletCard(
+                            text = "${wallet.name}: R${wallet.balance}",
+                            color = wallet.color
+                        )
+                    }
+                }
 
                 Spacer(Modifier.height(20.dp))
 
-                AddButton()
+                AddButton {
+                    WalletStore.addWallet(it)
+                }
             }
 
             Box(
@@ -85,19 +111,36 @@ fun WalletScreen() {
                         .align(Alignment.Center),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Image(painterResource(R.drawable.recordsicon), null)
+                    Image(
+                        painterResource(R.drawable.recordsicon),
+                        null,
+                        modifier = Modifier.clickable { onRecords() }
+                    )
                     Image(painterResource(R.drawable.walletsicon), null)
                     Image(painterResource(R.drawable.overviewicon), null)
-                    Image(painterResource(R.drawable.exporticon), null)
+                    Image(
+                        painterResource(R.drawable.exporticon),
+                        null,
+                        modifier = Modifier.clickable { onExport() }
+                    )
                 }
             }
+        }
+        selectedWallet?.let {
+            WalletPopup(
+                wallet = it,
+                onDismiss = { selectedWallet = null }
+            )
         }
     }
 }
 
 
 @Composable
-fun TopHeader(modifier: Modifier) {
+fun TopHeader(
+    modifier: Modifier,
+    onMenuClick: () -> Unit
+) {
 
     //for income and expense
     Box(
@@ -136,6 +179,7 @@ fun TopHeader(modifier: Modifier) {
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .clickable { onMenuClick() }
         )
     }
 }
@@ -157,19 +201,74 @@ fun WalletCard(text: String, color: Color) {
 
 //add new wallet
 @Composable
-fun AddButton() {
+fun AddButton(onAdd: (Wallet) -> Unit) {
+
+    var showDialog by remember { mutableStateOf(false) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var color by remember { mutableStateOf(Color.White) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                Text(
+                    "CREATE",
+                    modifier = Modifier.clickable {
+                        onAdd(
+                            Wallet(
+                                name = name,
+                                balance = 0,
+                                minSpend = 0,
+                                maxSpend = 0,
+                                color = color
+                            )
+                        )
+                        showDialog = false
+                    }
+                )
+            },
+            text = {
+                Column {
+                    Text("Name:")  // Added label
+                    Spacer(Modifier.height(4.dp))
+                    BasicTextField(value = name, onValueChange = { name = it })
+                    Spacer(Modifier.height(8.dp))
+                    Text("Pick Color (simple)")
+                    Row {
+                        listOf(Color.White, Color.Red, Color.Green).forEach {
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .background(it)
+                                    .clickable { color = it }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                        }
+                    }
+                }
+            }
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp)
-            .border(3.dp, Color.Black, RoundedCornerShape(20.dp)),
+            .border(3.dp, Color.Black, RoundedCornerShape(20.dp))
+            .clickable { showDialog = true },
         contentAlignment = Alignment.Center
     ) {
         Text("+ ADD", fontSize = 26.sp, fontWeight = FontWeight.Bold)
     }
 }
+
+@Preview(showBackground = true)
 @Composable
-@Preview (showBackground = true)
-fun previewWalletscreen (){
-    WalletScreen()
+fun previewWalletscreen() {
+    homescreen(
+        onAddTransaction = {},
+        onWallets = {},
+        onExport = {},
+        onMenuClick = {}
+    )
 }
