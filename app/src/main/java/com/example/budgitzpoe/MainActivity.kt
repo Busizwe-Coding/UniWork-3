@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -25,16 +26,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             BudgitzPOETheme {
 
-                var currentScreen by remember { mutableStateOf("home") }
+                var screen by remember { mutableStateOf("home") }
                 var menuOpen by remember { mutableStateOf(false) }
 
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.fillMaxSize()) {
 
-                    when (currentScreen) {
-                        "home" -> homescreen()
+                    when (screen) {
+
+                        "home" -> homescreen(
+                            onAddTransaction = { screen = "add" },
+                            onWallets = { screen = "wallet" },
+                            onExport = { screen = "export" },
+                            onMenuClick = { menuOpen = true }
+                        )
+
+                        "add" -> AddExpenseScreen()
                         "wallet" -> WalletScreen()
                         "export" -> ExportScreen()
-                        "add" -> AddExpenseScreen()
                     }
 
                     menuDrawer(

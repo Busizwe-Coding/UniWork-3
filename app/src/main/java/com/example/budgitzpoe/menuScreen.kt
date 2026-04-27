@@ -112,7 +112,7 @@ fun MenuItem(text: String) {
 @Preview(showBackground = true)
 fun previewMenuClosed() {
     menuDrawer(
-        isOpen = true,
+        isOpen = false,
         onClose = {}
     )
 }
