@@ -39,7 +39,7 @@ import com.example.budgitzpoe.ui.theme.DeepRed
 fun homescreen (){
     Surface(modifier= Modifier.fillMaxSize(), color = Acid){
         ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-            val(nameRow,list,topbar,bottombox,card) = createRefs()
+            val(nameRow,topbar,bottombox,card) = createRefs()
 
             Image(painter = painterResource(id = R.drawable.topbar),null,
                 contentScale = ContentScale.FillWidth,
@@ -73,7 +73,8 @@ fun homescreen (){
 
                     Row(
                         //this row is for income/expense/total all in one place
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(vertical = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
 
