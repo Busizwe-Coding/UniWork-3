@@ -30,6 +30,7 @@ fun WalletScreen(
     onRecords: () -> Unit,
     onWallets: () -> Unit,
     onExport: () -> Unit,
+    onOverviews: () -> Unit,
     onMenuClick: () -> Unit
 ) {
 
@@ -114,7 +115,11 @@ fun WalletScreen(
                         modifier = Modifier.clickable { onRecords() }
                     )
                     Image(painterResource(R.drawable.walletsicon), null)
-                    Image(painterResource(R.drawable.overviewicon), null)
+                    Image(
+                        painter = painterResource(R.drawable.overviewicon),
+                        contentDescription = null,
+                        modifier = Modifier.clickable { onOverviews() }
+                    )
                     Image(
                         painterResource(R.drawable.exporticon),
                         null,
@@ -268,6 +273,7 @@ fun previewWalletscreen() {
     homescreen(
         onAddTransaction = {},
         onWallets = {},
+        onOverviews = {},
         onExport = {},
         onMenuClick = {}
     )

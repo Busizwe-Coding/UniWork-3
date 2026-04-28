@@ -26,6 +26,7 @@ import com.example.budgitzpoe.ui.theme.Acid
 fun ExportScreen(
     onMenuClick: () -> Unit,
     onRecords: () -> Unit,
+    onOverviews: () -> Unit,
     onWallets: () -> Unit
 ) {
 
@@ -115,7 +116,11 @@ fun ExportScreen(
                         contentDescription = "Wallets",
                         modifier = Modifier.clickable { onWallets() }  // Goes to walletscreen
                     )
-                    Image(painterResource(R.drawable.overviewicon), null)
+                    Image(
+                        painter = painterResource(R.drawable.overviewicon),
+                        contentDescription = null,
+                        modifier = Modifier.clickable { onOverviews() }
+                    )
                     Image(painterResource(R.drawable.exporticon), null)
                 }
             }
@@ -129,7 +134,7 @@ fun topHeader(
     onMenuClick: () -> Unit  // Added this parameter
 ) {
 
-    //for income and expense
+    //for menu icon, income and expense
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -193,6 +198,7 @@ fun previewExportScreen() {
     ExportScreen(
         onMenuClick = { },
         onRecords = { },
+        onOverviews = {},
         onWallets = { }
     )
 }

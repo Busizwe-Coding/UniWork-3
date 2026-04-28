@@ -100,6 +100,7 @@ fun TransactionDetailsCard(
                 contentAlignment = Alignment.Center
             ) {
 
+                //added image or no image added
                 if (transaction.imageUri != null) {
                     Image(
                         painter = rememberAsyncImagePainter(transaction.imageUri),
@@ -114,6 +115,7 @@ fun TransactionDetailsCard(
             }
             Spacer(Modifier.height(16.dp))
 
+            //delete
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

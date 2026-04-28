@@ -139,6 +139,7 @@ fun AddExpenseScreen(
 
                 Spacer(Modifier.height(8.dp))
 
+                //drop downs
                 if (selectedTab == "Income") {
 
                     Row(
@@ -473,6 +474,7 @@ fun WalletPickerDialog(
         }
     )
 }
+//pick from categories
 @Composable
 fun CategoryPickerDialog(
     options: List<String>,
@@ -532,6 +534,7 @@ fun CategoryPickerDialog(
     )
 }
 
+//auto add date
 fun getCurrentDate(): String {
     val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
     return dateFormat.format(Date())

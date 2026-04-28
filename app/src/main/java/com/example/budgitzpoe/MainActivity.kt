@@ -1,9 +1,11 @@
 package com.example.budgitzpoe
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.budgitzpoe.ui.theme.BudgitzPOETheme
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -36,6 +39,7 @@ class MainActivity : ComponentActivity() {
                         "home" -> homescreen(
                             onAddTransaction = { screen = "add" },
                             onWallets = { screen = "wallet" },
+                            onOverviews = { screen = "overview" },
                             onExport = { screen = "export" },
                             onMenuClick = { menuOpen = true }
                         )
@@ -50,11 +54,22 @@ class MainActivity : ComponentActivity() {
                         "wallet" -> WalletScreen(
                             onRecords = { screen = "home" },
                             onWallets = { screen = "wallet" },
+                            onOverviews = { screen = "overview" },
                             onExport = { screen = "export" },
                             onMenuClick = { menuOpen = true }
                         )
+
+                        "overview" -> OverviewsScreen(
+                            onRecords = { screen = "home" },
+                            onWallets = { screen = "wallet" },
+                            onOverviews = { screen = "overview" },
+                            onExport = { screen = "export" },
+                            onMenuClick = { menuOpen = true }
+                        )
+
                         "export" -> ExportScreen(
                             onMenuClick = { menuOpen = true },
+                            onOverviews = { screen = "overview" },
                             onRecords = { screen = "home" },
                             onWallets = { screen = "wallet" }
                         )

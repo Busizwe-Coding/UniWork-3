@@ -47,6 +47,7 @@ import com.example.budgitzpoe.ui.theme.DeepRed
 fun homescreen(
     onAddTransaction: () -> Unit,
     onWallets: () -> Unit,
+    onOverviews: () -> Unit,
     onExport: () -> Unit,
     onMenuClick: () -> Unit
 ) {
@@ -180,7 +181,11 @@ fun homescreen(
                             modifier = Modifier.clickable { onWallets() }
                         )
 
-                        Image(painter = painterResource(id = R.drawable.overviewicon), contentDescription = null)
+                        Image(
+                            painter = painterResource(R.drawable.overviewicon),
+                            contentDescription = null,
+                            modifier = Modifier.clickable { onOverviews() }
+                        )
 
                         Image(
                             painter = painterResource(id = R.drawable.exporticon),
@@ -285,6 +290,7 @@ fun previewHomescreen() {
         onAddTransaction = {},
         onWallets = {},
         onExport = {},
+        onOverviews = {},
         onMenuClick = {}
     )
 }
