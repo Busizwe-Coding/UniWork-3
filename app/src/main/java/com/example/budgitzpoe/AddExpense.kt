@@ -96,7 +96,6 @@ fun AddExpenseScreen(
                     if (selectedTab != "Income") {
                         val wallet = WalletStore.wallets.firstOrNull { it.name == selectedWallet }
                         if (wallet != null && wallet.balance < amount) {
-                            // Show error or prevent save
                             return@topHeaders
                         }
                     }
@@ -111,7 +110,7 @@ fun AddExpenseScreen(
                         amount = amount,
                         type = type,
                         category = selectedCategory,
-                        date = "27/04/26",
+                        date = "",  // This will be replaced by addTransaction
                         description = description,
                         imageUri = selectedImageUri
                     )
@@ -119,7 +118,11 @@ fun AddExpenseScreen(
                     // Update wallet balance
                     updateWalletBalance(selectedWallet, amount, selectedTab)
 
-                    onSave(newTransaction)
+                    // Add transaction with date
+                    val datedTransaction = TransactionStore.addTransaction(newTransaction)
+
+                    // Call parent onSave to navigate back (don't add again)
+                    onSave(datedTransaction)
                     selectedImageUri = null
                 },
                 modifier = Modifier.constrainAs(topbar) {
@@ -139,7 +142,7 @@ fun AddExpenseScreen(
 
                 Spacer(Modifier.height(8.dp))
 
-                //drop downs
+                //dropdowns
                 if (selectedTab == "Income") {
 
                     Row(
@@ -255,7 +258,7 @@ fun topHeaders(
     selectedTab: String,
     onTabChange: (String) -> Unit,
     onCancel: () -> Unit,
-    onSave: () -> Unit,  // Keep as simple lambda
+    onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 

@@ -4,15 +4,17 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.text.intl.Locale
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Date
 
 object TransactionStore {
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun getCurrentDate(): String {
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yy")
-        return LocalDate.now().format(formatter)
+        val dateFormat = SimpleDateFormat("dd/MM/yy")
+        return dateFormat.format(Date())
     }
 
     var transactions = mutableStateListOf(
@@ -21,13 +23,11 @@ object TransactionStore {
     )
         private set
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun addTransaction(transaction: Transaction) {
-
+    fun addTransaction(transaction: Transaction): Transaction {
         val transactionWithDate = transaction.copy(
             date = getCurrentDate()
         )
-
         transactions.add(transactionWithDate)
+        return transactionWithDate
     }
 }

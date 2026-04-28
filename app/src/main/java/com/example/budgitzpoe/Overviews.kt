@@ -1,5 +1,6 @@
 package com.example.budgitzpoe
 
+import android.R.attr.action
 import android.os.Build
 import android.view.Surface
 import androidx.annotation.RequiresApi
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,13 +29,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import kotlinx.coroutines.NonDisposableHandle.parent
 import com.example.budgitzpoe.ui.theme.Acid
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -45,7 +50,10 @@ fun OverviewsScreen(
     onWallets: () -> Unit,
     onOverviews: () -> Unit,
     onExport: () -> Unit,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    onAccounts : () -> Unit,
+    onExpenses : () -> Unit,
+    onIncome : () -> Unit
 ) {
 
     var showMonths by remember { mutableStateOf(false) }
@@ -57,16 +65,34 @@ fun OverviewsScreen(
 
     var selectedMonth by remember { mutableStateOf(currentMonth) }
 
-    // categories in month
-    var selectedTab by remember { mutableStateOf(1) }
+    // Base categories
+    val baseCategories = listOf("SOCIAL", "FOOD", "TRANSPORT", "SHOPPING", "BILLS")
 
-    val categories = listOf(
-        "SOCIAL" to "R0",
-        "FOOD" to "R0",
-        "TRANSPORT" to "R0",
-        "SHOPPING" to "R0",
-        "BILLS" to "R0"
-    )
+    // Only Debited transactions for the selected month
+    val debitedTransactions = TransactionStore.transactions.filter { transaction ->
+        transaction.type == "Debited" &&
+                runCatching {
+                    val date = LocalDate.parse(transaction.date, DateTimeFormatter.ofPattern("dd/MM/yy"))
+                    date.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH).uppercase() == selectedMonth
+                }.getOrDefault(false)
+    }
+
+    // Build category map: merge base + any new categories from transactions
+    val extraCategories = debitedTransactions
+        .map { it.category.uppercase() }
+        .distinct()
+        .filter { it !in baseCategories }
+
+    val allCategories = baseCategories + extraCategories
+
+    // Sum amounts per category
+    val categoryTotals = allCategories.associateWith { category ->
+        debitedTransactions
+            .filter { it.category.uppercase() == category }
+            .sumOf { it.amount }
+    }
+
+    val total = categoryTotals.values.sum()
 
     Surface(modifier = Modifier.fillMaxSize(), color = Acid) {
 
@@ -125,6 +151,102 @@ fun OverviewsScreen(
                     Text(selectedMonth, color = Color.White, fontSize = 18.sp)
                 }
 
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .constrainAs(content) {
+                            top.linkTo(topbar.bottom)
+                            bottom.linkTo(bottombox.top)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            height = Dimension.fillToConstraints
+                        }
+                ) {
+                    // Category rows
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                    ) {
+                        allCategories.forEach { category ->
+                            val amount = categoryTotals[category] ?: 0
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = category,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                                Text(
+                                    text = "R$amount",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            }
+                            HorizontalDivider(color = Color.Black, thickness = 1.dp)
+                        }
+                    }
+
+                    // Total row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "TOTAL:",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.Black
+                        )
+                        Text(
+                            text = "R$total",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.Black
+                        )
+                    }
+
+                    // Tab buttons: Accounts / Expenses / Income
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            "ACCOUNTS" to onAccounts,
+                            "EXPENSES" to onExpenses,
+                            "INCOME" to onIncome
+                        ).forEach { (label, action) ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.Black)
+                                    .clickable { action() }
+                                    .padding(vertical = 14.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    color = Color.White,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -135,6 +257,7 @@ fun OverviewsScreen(
                         }
                 ) {
 
+                    //nav bar
                     Image(
                         painter = painterResource(id = R.drawable.bottombar),
                         contentDescription = null,
@@ -228,7 +351,7 @@ fun MonthPickerDialog(
     }
 }
 
-
+//screens
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview(showBackground = true)
@@ -238,6 +361,9 @@ fun previewOverviewScreen() {
         onRecords = {},
         onOverviews = {},
         onExport = {},
-        onMenuClick = {}
+        onMenuClick = {},
+        onAccounts = {},
+        onExpenses = {},
+        onIncome = {}
     )
 }

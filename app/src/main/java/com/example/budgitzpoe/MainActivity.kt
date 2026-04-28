@@ -47,10 +47,10 @@ class MainActivity : ComponentActivity() {
                         "add" -> AddExpenseScreen(
                             onCancel = { screen = "home" },
                             onSave = {
-                                TransactionStore.transactions.add(it)
                                 screen = "home"
                             }
                         )
+
                         "wallet" -> WalletScreen(
                             onRecords = { screen = "home" },
                             onWallets = { screen = "wallet" },
@@ -64,7 +64,10 @@ class MainActivity : ComponentActivity() {
                             onWallets = { screen = "wallet" },
                             onOverviews = { screen = "overview" },
                             onExport = { screen = "export" },
-                            onMenuClick = { menuOpen = true }
+                            onMenuClick = { menuOpen = true },
+                            onAccounts = {},
+                            onExpenses = {},
+                            onIncome = {}
                         )
 
                         "export" -> ExportScreen(
