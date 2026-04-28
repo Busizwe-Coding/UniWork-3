@@ -4,6 +4,8 @@ Creating a budgeting app to record daily transactions
 ## Overview
 A simple budget tracking app that helps users manage daily expenses, set spending goals, and track spending across different categories. All data is stored locally using Room Database.
 
+YOUTUBE DEMONSTRATION VIDEO: https://www.youtube.com/watch?v=77Yrbc4V1IE
+
 ## Features
 
 ### 🔐 User Authentication
