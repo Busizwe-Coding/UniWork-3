@@ -5,6 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.budgitzpoe"
+
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -58,4 +59,5 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
     implementation("io.coil-kt:coil-compose:2.6.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }

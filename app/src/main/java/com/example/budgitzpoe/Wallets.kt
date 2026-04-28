@@ -1,5 +1,7 @@
 package com.example.budgitzpoe
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -144,8 +146,8 @@ fun TopHeader(
     onMenuClick: () -> Unit
 ) {
     val transactions = TransactionStore.transactions
-    val totalIncome = transactions.filter { it.type == "income" }.sumOf { it.amount }
-    val totalExpense = transactions.filter { it.type == "expense" }.sumOf { it.amount }
+    val totalIncome = TransactionStore.transactions.filter { it.type.equals("Income", true) || it.type.equals("Credited", true) }.sumOf { it.amount }
+    val totalExpense = TransactionStore.transactions.filter { it.type.equals("Debited", true) }.sumOf { it.amount }
 
     Box(
         modifier = Modifier
@@ -257,6 +259,7 @@ fun AddButton(onAdd: (Wallet) -> Unit) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun previewWalletscreen() {

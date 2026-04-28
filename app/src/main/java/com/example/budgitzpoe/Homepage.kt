@@ -1,6 +1,8 @@
 package com.example.budgitzpoe
 
 import android.R.attr.top
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,8 +43,14 @@ import androidx.compose.ui.layout.ContentScale
 import com.example.budgitzpoe.ui.theme.Acid
 import com.example.budgitzpoe.ui.theme.DarkGreen
 import com.example.budgitzpoe.ui.theme.DeepRed
+import com.example.budgitzpoe.R
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun homescreen(
     onAddTransaction: () -> Unit,
@@ -53,6 +61,22 @@ fun homescreen(
 ) {
 
     var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
+
+    var showMonths by remember { mutableStateOf(false) }
+
+    val currentMonth = LocalDate.now()
+        .month
+        .getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+        .uppercase()
+
+    var selectedMonth by remember { mutableStateOf(currentMonth) }
+
+    val filteredTransactions = TransactionStore.transactions.filter { transaction ->
+        runCatching {
+            val date = LocalDate.parse(transaction.date, DateTimeFormatter.ofPattern("dd/MM/yy"))
+            date.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH).uppercase() == selectedMonth
+        }.getOrDefault(false)
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Acid) {
 
@@ -77,9 +101,8 @@ fun homescreen(
                 )
 
                 //dynamic amount at the top of the screen
-                val transactions = TransactionStore.transactions
-                val totalIncome = transactions.filter { it.type == "income" }.sumOf { it.amount }
-                val totalExpense = transactions.filter { it.type == "expense" }.sumOf { it.amount }
+                val totalIncome = filteredTransactions.filter { it.type.equals("Income", true) || it.type.equals("Credited", true) }.sumOf { it.amount }
+                val totalExpense = filteredTransactions.filter { it.type.equals("Debited", true) }.sumOf { it.amount }
                 val total = totalIncome - totalExpense
 
                 Box(
@@ -95,15 +118,13 @@ fun homescreen(
 
                     Column {
 
-                        Text("Welcome Back!", fontSize = 25.sp, color = Acid)
-
                         Spacer(modifier = Modifier.height(12.dp))
 
                         //top money calculator
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 15.dp),
+                                .padding(vertical = 45.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
 
@@ -122,17 +143,33 @@ fun homescreen(
                         }
                     }
 
-                    //menuicon
-                    Image(
-                        painter = painterResource(id = R.drawable.menuicon),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .clickable { onMenuClick() }
-                    )
+                    //menuicon and month button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Black)
+                                .clickable { showMonths = true }
+                                .padding(horizontal = 30.dp, vertical = 10.dp)
+                        ) {
+                            Text(selectedMonth, color = Color.White, fontSize = 18.sp)
+                        }
+
+                        Image(
+                            painter = painterResource(id = R.drawable.menuicon),
+                            contentDescription = null,
+                            modifier = Modifier.clickable { onMenuClick() }
+                        )
+                    }
                 }
 
                 TransactionsList(
+                    transactions = filteredTransactions,
                     modifier = Modifier.constrainAs(card) {
                         top.linkTo(topbar.bottom)
                         start.linkTo(parent.start)
@@ -211,6 +248,16 @@ fun homescreen(
                     }
                 )
             }
+
+            if (showMonths) {
+                MonthPickerDialog(
+                    onSelect = {
+                        selectedMonth = it
+                        showMonths = false
+                    },
+                    onDismiss = { showMonths = false }
+                )
+            }
         }
     }
 }
@@ -272,11 +319,10 @@ fun TransactionItem(
 
 @Composable
 fun TransactionsList(
+    transactions: List<Transaction>,
     modifier: Modifier = Modifier,
     onTransactionClick: (Transaction) -> Unit
 ) {
-
-    val transactions = TransactionStore.transactions
 
     LazyColumn(modifier = modifier) {
         items(transactions) { item ->
@@ -288,6 +334,7 @@ fun TransactionsList(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview(showBackground = true)
 fun previewHomescreen() {
