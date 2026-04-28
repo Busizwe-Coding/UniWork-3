@@ -29,12 +29,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             BudgitzPOETheme {
 
-                var screen by remember { mutableStateOf("home") }
+                var screen by remember { mutableStateOf("login") }
                 var menuOpen by remember { mutableStateOf(false) }
 
                 Box(modifier = Modifier.fillMaxSize()) {
 
                     when (screen) {
+
+                        "login" -> LoginScreen(
+                            onLoginSuccess = { screen = "home" }
+                        )
 
                         "home" -> homescreen(
                             onAddTransaction = { screen = "add" },
@@ -80,7 +84,11 @@ class MainActivity : ComponentActivity() {
 
                     menuDrawer(
                         isOpen = menuOpen,
-                        onClose = { menuOpen = false }
+                        onClose = { menuOpen = false },
+                        onLogout = {
+                            menuOpen = false
+                            screen = "login"
+                        }
                     )
                 }
             }

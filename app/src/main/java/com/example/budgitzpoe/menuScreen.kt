@@ -26,7 +26,8 @@ import com.example.budgitzpoe.ui.theme.Acid
 @Composable
 fun menuDrawer(
     isOpen: Boolean,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val offsetX by animateDpAsState(
         targetValue = if (isOpen) 0.dp else (-300).dp,
@@ -66,7 +67,9 @@ fun menuDrawer(
                 MenuItem("Currency")
                 Divider(color = Color.DarkGray, thickness = 3.dp)
 
-                MenuItem("Logout")
+                MenuItem("Logout") {
+                    onLogout()
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -97,13 +100,14 @@ fun menuDrawer(
 }
 
 @Composable
-fun MenuItem(text: String) {
+fun MenuItem(text: String, onClick: () -> Unit = {}) {
     Text(
         text = text,
         color = Color.White,
         fontSize = 20.sp,
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() }
             .padding(vertical = 14.dp)
     )
 }
@@ -113,6 +117,7 @@ fun MenuItem(text: String) {
 fun previewMenuClosed() {
     menuDrawer(
         isOpen = false,
-        onClose = {}
+        onClose = {},
+        onLogout = {}
     )
 }

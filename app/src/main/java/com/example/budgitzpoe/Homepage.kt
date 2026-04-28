@@ -122,6 +122,7 @@ fun homescreen(
                         }
                     }
 
+                    //menuicon
                     Image(
                         painter = painterResource(id = R.drawable.menuicon),
                         contentDescription = null,
