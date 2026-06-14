@@ -45,9 +45,7 @@ class MainActivity : ComponentActivity() {
 
                         "add" -> AddExpenseScreen(
                             onCancel = { screen = "home" },
-                            onSave = {
-                                screen = "home"
-                            }
+                            onSave = { screen = "home" }
                         )
 
                         "wallet" -> WalletScreen(
@@ -75,23 +73,32 @@ class MainActivity : ComponentActivity() {
                             onRecords = { screen = "home" },
                             onWallets = { screen = "wallet" }
                         )
+
                         "budgets" -> BudgetsScreen(
+                            onMenuClick = { menuOpen = true }
+                        )
+
+                        // FIX: Added missing destination routing engine mapping
+                        "badges" -> BadgesScreen(
                             onMenuClick = { menuOpen = true }
                         )
                     }
 
-                    // 2. Updated the menuDrawer
                     menuDrawer(
                         isOpen = menuOpen,
-                        currentScreen = screen, // Passes our tracking state string ("home", "budgets", etc.)
+                        currentScreen = screen,
                         onClose = { menuOpen = false },
                         onNavigateToBudgets = {
                             menuOpen = false
                             screen = "budgets"
                         },
-                        onNavigateToHome = { // New redirection callback handling
+                        onNavigateToHome = {
                             menuOpen = false
                             screen = "home"
+                        },
+                        onNavigateToBadges = {
+                            menuOpen = false
+                            screen = "badges"
                         },
                         onLogout = {
                             menuOpen = false

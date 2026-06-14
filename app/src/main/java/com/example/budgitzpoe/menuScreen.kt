@@ -26,8 +26,11 @@ import com.example.budgitzpoe.ui.theme.Acid
 @Composable
 fun menuDrawer(
     isOpen: Boolean,
+    currentScreen: String,
     onClose: () -> Unit,
-    onNavigateToBudgets: () -> Unit, // Added this callback parameter
+    onNavigateToBudgets: () -> Unit,
+    onNavigateToHome: () -> Unit,
+    onNavigateToBadges: () -> Unit, // Added this new route callback parameter
     onLogout: () -> Unit
 ) {
     val offsetX by animateDpAsState(
@@ -35,9 +38,7 @@ fun menuDrawer(
         label = "drawerAnimation"
     )
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         if (isOpen) {
             Box(
                 modifier = Modifier
@@ -48,55 +49,46 @@ fun menuDrawer(
         }
 
         Surface(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(280.dp)
-                .offset(x = offsetX),
+            modifier = Modifier.fillMaxHeight().width(280.dp).offset(x = offsetX),
             color = Color.Black
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp)
-            ) {
-
+            Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // Pass the click event here to route screens and shut the drawer
-                MenuItem("Budgets") {
-                    onNavigateToBudgets()
-                }
-                Divider(color = Color.DarkGray, thickness = 3.dp)
+                // ROUTE RENDER CONDITION RULES
+                if (currentScreen == "badges") {
+                    MenuItem("Home") { onNavigateToHome() }
+                    Divider(color = Color.DarkGray, thickness = 3.dp)
 
-                MenuItem("Currency")
-                Divider(color = Color.DarkGray, thickness = 3.dp)
+                    MenuItem("Budgets") { onNavigateToBudgets() }
+                    Divider(color = Color.DarkGray, thickness = 3.dp)
+                } else {
+                    if (currentScreen == "budgets") {
+                        MenuItem("Home") { onNavigateToHome() }
+                    } else {
+                        MenuItem("Budgets") { onNavigateToBudgets() }
+                    }
+                    Divider(color = Color.DarkGray, thickness = 3.dp)
 
-                MenuItem("Logout") {
-                    onLogout()
+                    MenuItem("Currency")
+                    Divider(color = Color.DarkGray, thickness = 3.dp)
+
+                    // Injecting "Badges" selection link above logout
+                    MenuItem("Badges") { onNavigateToBadges() }
+                    Divider(color = Color.DarkGray, thickness = 3.dp)
                 }
+
+                MenuItem("Logout") { onLogout() }
 
                 Spacer(modifier = Modifier.weight(1f))
-
                 Divider(color = Color.DarkGray, thickness = 3.dp)
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.helpicon),
-                        contentDescription = "Help",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(end = 12.dp)
-                    )
-                    Text(
-                        text = "Help",
-                        color = Color.White,
-                        fontSize = 22.sp
-                    )
+                    Image(painter = painterResource(id = R.drawable.helpicon), contentDescription = "Help", modifier = Modifier.size(50.dp).padding(end = 12.dp))
+                    Text(text = "Help", color = Color.White, fontSize = 22.sp)
                 }
             }
         }
