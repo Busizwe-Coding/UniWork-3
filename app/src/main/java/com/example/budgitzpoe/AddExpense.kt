@@ -523,17 +523,13 @@ fun CategoryPickerDialog(
     onAddNew: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-
-    //add category
     var newCategory by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Select Category") },
         text = {
-
             Column {
-
                 options.forEach {
                     Text(
                         text = it,
@@ -546,7 +542,7 @@ fun CategoryPickerDialog(
 
                 Spacer(Modifier.height(10.dp))
 
-                //user added category
+                // User added category text field input
                 BasicTextField(
                     value = newCategory,
                     onValueChange = { newCategory = it },
@@ -563,7 +559,16 @@ fun CategoryPickerDialog(
                     modifier = Modifier
                         .clickable {
                             if (newCategory.isNotBlank()) {
-                                onAddNew(newCategory)
+                                val formattedCategory = newCategory.trim().uppercase()
+
+                                // 1. Spawns a corresponding white budget jar automatically
+                                BudgetStore.addJar(formattedCategory)
+
+                                // 2. Triggers your existing parent component category pipeline updates
+                                onAddNew(formattedCategory)
+
+                                // Clear the input field for subsequent entries
+                                newCategory = ""
                             }
                         }
                         .padding(8.dp)

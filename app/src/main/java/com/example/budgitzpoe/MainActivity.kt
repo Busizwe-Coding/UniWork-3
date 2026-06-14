@@ -75,11 +75,24 @@ class MainActivity : ComponentActivity() {
                             onRecords = { screen = "home" },
                             onWallets = { screen = "wallet" }
                         )
+                        "budgets" -> BudgetsScreen(
+                            onMenuClick = { menuOpen = true }
+                        )
                     }
 
+                    // 2. Updated the menuDrawer
                     menuDrawer(
                         isOpen = menuOpen,
+                        currentScreen = screen, // Passes our tracking state string ("home", "budgets", etc.)
                         onClose = { menuOpen = false },
+                        onNavigateToBudgets = {
+                            menuOpen = false
+                            screen = "budgets"
+                        },
+                        onNavigateToHome = { // New redirection callback handling
+                            menuOpen = false
+                            screen = "home"
+                        },
                         onLogout = {
                             menuOpen = false
                             screen = "login"

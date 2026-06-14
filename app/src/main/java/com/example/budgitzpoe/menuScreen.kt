@@ -27,6 +27,7 @@ import com.example.budgitzpoe.ui.theme.Acid
 fun menuDrawer(
     isOpen: Boolean,
     onClose: () -> Unit,
+    onNavigateToBudgets: () -> Unit, // Added this callback parameter
     onLogout: () -> Unit
 ) {
     val offsetX by animateDpAsState(
@@ -61,7 +62,10 @@ fun menuDrawer(
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                MenuItem("Budgets")
+                // Pass the click event here to route screens and shut the drawer
+                MenuItem("Budgets") {
+                    onNavigateToBudgets()
+                }
                 Divider(color = Color.DarkGray, thickness = 3.dp)
 
                 MenuItem("Currency")
@@ -98,7 +102,6 @@ fun menuDrawer(
         }
     }
 }
-
 @Composable
 fun MenuItem(text: String, onClick: () -> Unit = {}) {
     Text(
@@ -109,15 +112,5 @@ fun MenuItem(text: String, onClick: () -> Unit = {}) {
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(vertical = 14.dp)
-    )
-}
-
-@Composable
-@Preview(showBackground = true)
-fun previewMenuClosed() {
-    menuDrawer(
-        isOpen = false,
-        onClose = {},
-        onLogout = {}
     )
 }
