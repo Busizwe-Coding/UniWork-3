@@ -1,30 +1,35 @@
 package com.example.budgitzpoe
 
-import androidx.compose.animation.Animatable
+import android.content.Context
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.*
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.budgitzpoe.ui.theme.Acid
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
+import java.io.OutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import com.example.budgitzpoe.ui.theme.Acid
 
 @Composable
 fun ExportScreen(
@@ -33,10 +38,24 @@ fun ExportScreen(
     onOverviews: () -> Unit,
     onWallets: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    // Track selected export type: "CSV" or "XLSX"
+    var selectedType by remember { mutableStateOf("CSV") }
+
+    // Lazy initialization of document saver
+    val fileSaverLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("*/*")
+    ) { uri: Uri? ->
+        if (uri != null) {
+            writeTransactionDataToFile(context, uri, selectedType)
+        } else {
+            Toast.makeText(context, "Export cancelled", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Acid) {
         ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-
             val (nameRow, topbar, bottombox, content) = createRefs()
 
             Image(
@@ -48,17 +67,15 @@ fun ExportScreen(
                 }
             )
 
-            //income and expenses again
             topHeader(
                 modifier = Modifier.constrainAs(nameRow) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 },
-                onMenuClick = onMenuClick  // Pass the function
+                onMenuClick = onMenuClick
             )
 
-            //export button
             Column(
                 modifier = Modifier
                     .width(350.dp)
@@ -67,24 +84,43 @@ fun ExportScreen(
                         bottom.linkTo(bottombox.top)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
+                        height = androidx.constraintlayout.compose.Dimension.fillToConstraints
                     },
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Clicking option updates selection state tracking variables
+                ExportOption(
+                    text = "Export as .csv",
+                    isSelected = selectedType == "CSV",
+                    onClick = { selectedType = "CSV" }
+                )
 
-                ExportOption("Export as .csv")
-                ExportOption("Export as .xlsx")
+                ExportOption(
+                    text = "Export as .xlsx",
+                    isSelected = selectedType == "XLSX",
+                    onClick = { selectedType = "XLSX" }
+                )
 
                 Spacer(Modifier.height(40.dp))
 
                 Button(
-                    onClick = { },
-                    modifier = Modifier.width(200.dp).height(60.dp)
+                    onClick = {
+                        val currentMonthName = LocalDate.now().month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).lowercase()
+                        val extension = if (selectedType == "CSV") "csv" else "xlsx"
+                        val fileName = "transactions_$currentMonthName.$extension"
+
+                        // Triggers the system file manager prompt
+                        fileSaverLauncher.launch(fileName)
+                    },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(60.dp)
                         .padding(top = 10.dp)
                         .align(alignment = Alignment.CenterHorizontally),
                     colors = ButtonDefaults.buttonColors(Color.Black)
                 ) {
-                    Text("EXPORT", fontSize = 20.sp)
+                    Text("EXPORT", fontSize = 20.sp, color = Color.White)
                 }
             }
 
@@ -113,12 +149,12 @@ fun ExportScreen(
                     Image(
                         painter = painterResource(R.drawable.recordsicon),
                         contentDescription = "Records",
-                        modifier = Modifier.clickable { onRecords() }  // Goes to homescreen
+                        modifier = Modifier.clickable { onRecords() }
                     )
                     Image(
                         painter = painterResource(R.drawable.walletsicon),
                         contentDescription = "Wallets",
-                        modifier = Modifier.clickable { onWallets() }  // Goes to walletscreen
+                        modifier = Modifier.clickable { onWallets() }
                     )
                     Image(
                         painter = painterResource(R.drawable.overviewicon),
@@ -184,18 +220,65 @@ fun topHeader(
     }
 }
 
-//export file types
+// REFACTORED SELECTION EXPORT CARDS
 @Composable
-fun ExportOption(text: String) {
+fun ExportOption(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 50.dp)
-            .height(80.dp)
-            .background(Color.Black, RoundedCornerShape(20.dp)),
+            .padding(top = 20.dp)
+            .height(70.dp)
+            .border(3.dp, Color.Black, RoundedCornerShape(20.dp))
+            .background(
+                if (isSelected) Color.Black else Color.White,
+                RoundedCornerShape(20.dp)
+            )
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = Color.White, fontSize = 22.sp)
+        Text(
+            text = text,
+            color = if (isSelected) Color.White else Color.Black,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+// FILE WRITING ENGINE DATA CONTROLLER
+private fun writeTransactionDataToFile(context: Context, uri: Uri, type: String) {
+    val currentMonth = LocalDate.now().month.getDisplayName(TextStyle.FULL, Locale.ENGLISH).uppercase()
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yy")
+
+    // Filter down to the active month's accounting transactions
+    val filteredTransactions = TransactionStore.transactions.filter { transaction ->
+        runCatching {
+            val date = LocalDate.parse(transaction.date, formatter)
+            date.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH).uppercase() == currentMonth
+        }.getOrDefault(false)
+    }
+
+    // Generate column split separation format based on type selection
+    val separator = if (type == "CSV") "," else "\t"
+
+    val stringBuilder = StringBuilder()
+    // Append headers row
+    stringBuilder.append("Date${separator}Category${separator}Description${separator}Type${separator}Amount\n")
+
+    // Populate lines sequentially
+    for (t in filteredTransactions) {
+        stringBuilder.append("${t.date}${separator}${t.category}${separator}${t.description}${separator}${t.type}${separator}${t.amount}\n")
+    }
+
+    try {
+        val outputStream: OutputStream? = context.contentResolver.openOutputStream(uri)
+        outputStream?.use { stream ->
+            stream.write(stringBuilder.toString().toByteArray())
+            stream.flush()
+        }
+        Toast.makeText(context, "Export successful!", Toast.LENGTH_LONG).show()
+    } catch (e: Exception) {
+        Toast.makeText(context, "Failed to save: ${e.message}", Toast.LENGTH_LONG).show()
     }
 }
 
