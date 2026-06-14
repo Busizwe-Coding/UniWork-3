@@ -106,7 +106,6 @@ fun BudgetsScreen(
 
                 val (nameRow, topbar, bottombox, card) = createRefs()
 
-                // Header Top Image (Identical to Homescreen)
                 Image(
                     painter = painterResource(id = R.drawable.topbar),
                     contentDescription = null,
@@ -120,7 +119,6 @@ fun BudgetsScreen(
                         }
                 )
 
-                // Customized information alignment matching structural padding metrics
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -197,7 +195,7 @@ fun BudgetsScreen(
 
                         val cardBackgroundColor = if (isOverBudget) Color.Red else jar.customColor
 
-                        val displayAmountString = if (isOverBudget) "-R$totalSpentOnCategory" else "R$totalSpentOnCategory"
+                        val displayAmountString = if (isOverBudget) "-${CurrencyStore.selectedCurrency}$totalSpentOnCategory" else "${CurrencyStore.selectedCurrency}$totalSpentOnCategory"
                         val contentColor = if (cardBackgroundColor == Color.White) Color.Black else Color.White
 
                         Box(

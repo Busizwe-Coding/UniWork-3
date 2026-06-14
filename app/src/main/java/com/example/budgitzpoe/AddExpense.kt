@@ -496,7 +496,7 @@ fun WalletPickerDialog(
             Column {
                 WalletStore.wallets.forEach { wallet ->
                     Text(
-                        text = "${wallet.name} (R${wallet.balance})",
+                        text = "${wallet.name} (${CurrencyStore.selectedCurrency}${wallet.balance})",
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onSelect(wallet.name) }

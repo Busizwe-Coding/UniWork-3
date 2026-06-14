@@ -78,10 +78,10 @@ class MainActivity : ComponentActivity() {
                             onMenuClick = { menuOpen = true }
                         )
 
-                        // FIX: Added missing destination routing engine mapping
                         "badges" -> BadgesScreen(
                             onMenuClick = { menuOpen = true }
                         )
+                        "currency" -> CurrenciesScreen(onMenuClick = { menuOpen = true })
                     }
 
                     menuDrawer(
@@ -99,6 +99,10 @@ class MainActivity : ComponentActivity() {
                         onNavigateToBadges = {
                             menuOpen = false
                             screen = "badges"
+                        },
+                        onNavigateToCurrency = {
+                            menuOpen = false;
+                            screen = "currency"
                         },
                         onLogout = {
                             menuOpen = false

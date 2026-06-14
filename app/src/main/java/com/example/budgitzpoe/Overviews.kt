@@ -184,7 +184,7 @@ fun OverviewsScreen(
                                     color = Color.Black
                                 )
                                 Text(
-                                    text = "R$amount",
+                                    text = "${CurrencyStore.selectedCurrency}$amount",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black
@@ -208,7 +208,7 @@ fun OverviewsScreen(
                             color = Color.Black
                         )
                         Text(
-                            text = "R$total",
+                            text = "${CurrencyStore.selectedCurrency}$total",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color.Black

@@ -303,7 +303,7 @@ fun TransactionItem(
         ) {
 
             Text(
-                text = "${transaction.type} R${transaction.amount}",
+                text = "${transaction.type} ${CurrencyStore.selectedCurrency}${transaction.amount}",
                 color = textColor,
                 fontWeight = FontWeight.Bold
             )

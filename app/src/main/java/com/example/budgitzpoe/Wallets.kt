@@ -209,7 +209,7 @@ fun WalletCard(wallet: Wallet) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(wallet.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text("R${wallet.balance}", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("${CurrencyStore.selectedCurrency}${wallet.balance}", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

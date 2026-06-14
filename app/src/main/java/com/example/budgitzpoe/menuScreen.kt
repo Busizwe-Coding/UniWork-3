@@ -30,7 +30,8 @@ fun menuDrawer(
     onClose: () -> Unit,
     onNavigateToBudgets: () -> Unit,
     onNavigateToHome: () -> Unit,
-    onNavigateToBadges: () -> Unit, // Added this new route callback parameter
+    onNavigateToBadges: () -> Unit,
+    onNavigateToCurrency: () -> Unit, // Added to handle routing to currency screen
     onLogout: () -> Unit
 ) {
     val offsetX by animateDpAsState(
@@ -49,45 +50,71 @@ fun menuDrawer(
         }
 
         Surface(
-            modifier = Modifier.fillMaxHeight().width(280.dp).offset(x = offsetX),
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(280.dp)
+                .offset(x = offsetX),
             color = Color.Black
         ) {
             Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // ROUTE RENDER CONDITION RULES
-                if (currentScreen == "badges") {
-                    MenuItem("Home") { onNavigateToHome() }
-                    Divider(color = Color.DarkGray, thickness = 3.dp)
-
-                    MenuItem("Budgets") { onNavigateToBudgets() }
-                    Divider(color = Color.DarkGray, thickness = 3.dp)
-                } else {
-                    if (currentScreen == "budgets") {
+                // CLEAN REFACTORED NAVIGATION DRAWER CONDITIONAL RENDER RULES
+                when (currentScreen) {
+                    "currency" -> {
+                        // Shows exactly: Home, Badges, Budgets, Logout
                         MenuItem("Home") { onNavigateToHome() }
-                    } else {
+                        Divider(color = Color.DarkGray, thickness = 3.dp)
+
+                        MenuItem("Badges") { onNavigateToBadges() }
+                        Divider(color = Color.DarkGray, thickness = 3.dp)
+
                         MenuItem("Budgets") { onNavigateToBudgets() }
+                        Divider(color = Color.DarkGray, thickness = 3.dp)
                     }
-                    Divider(color = Color.DarkGray, thickness = 3.dp)
 
-                    MenuItem("Currency")
-                    Divider(color = Color.DarkGray, thickness = 3.dp)
+                    "badges" -> {
+                        MenuItem("Home") { onNavigateToHome() }
+                        Divider(color = Color.DarkGray, thickness = 3.dp)
 
-                    // Injecting "Badges" selection link above logout
-                    MenuItem("Badges") { onNavigateToBadges() }
-                    Divider(color = Color.DarkGray, thickness = 3.dp)
+                        MenuItem("Budgets") { onNavigateToBudgets() }
+                        Divider(color = Color.DarkGray, thickness = 3.dp)
+                    }
+
+                    else -> {
+                        // Default list layout rules for Home, Wallets, Overviews, Export screens
+                        if (currentScreen == "budgets") {
+                            MenuItem("Home") { onNavigateToHome() }
+                        } else {
+                            MenuItem("Budgets") { onNavigateToBudgets() }
+                        }
+                        Divider(color = Color.DarkGray, thickness = 3.dp)
+
+                        MenuItem("Currency") { onNavigateToCurrency() }
+                        Divider(color = Color.DarkGray, thickness = 3.dp)
+
+                        MenuItem("Badges") { onNavigateToBadges() }
+                        Divider(color = Color.DarkGray, thickness = 3.dp)
+                    }
                 }
 
+                // Logout always pins to the bottom of the active selections stack
                 MenuItem("Logout") { onLogout() }
 
                 Spacer(modifier = Modifier.weight(1f))
                 Divider(color = Color.DarkGray, thickness = 3.dp)
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(painter = painterResource(id = R.drawable.helpicon), contentDescription = "Help", modifier = Modifier.size(50.dp).padding(end = 12.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.helpicon),
+                        contentDescription = "Help",
+                        modifier = Modifier.size(50.dp).padding(end = 12.dp)
+                    )
                     Text(text = "Help", color = Color.White, fontSize = 22.sp)
                 }
             }
