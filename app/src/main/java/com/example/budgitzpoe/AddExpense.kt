@@ -109,19 +109,23 @@ fun AddExpenseScreen(
                     val newTransaction = Transaction(
                         amount = amount,
                         type = type,
-                        category = selectedCategory,
-                        date = "",  // This will be replaced by addTransaction
+                        category = selectedCategory, // Serves as the "To" account for transfers
+                        date = "",
                         description = description,
                         imageUri = selectedImageUri
                     )
 
                     // Update wallet balance
-                    updateWalletBalance(selectedWallet, amount, selectedTab)
+                    updateWalletBalance(
+                        sourceWalletName = selectedWallet,
+                        destinationWalletName = selectedCategory,
+                        amount = amount,
+                        tabType = selectedTab
+                    )
 
                     // Add transaction with date
                     val datedTransaction = TransactionStore.addTransaction(newTransaction)
 
-                    // Call parent onSave to navigate back (don't add again)
                     onSave(datedTransaction)
                     selectedImageUri = null
                 },
@@ -142,14 +146,13 @@ fun AddExpenseScreen(
 
                 Spacer(Modifier.height(8.dp))
 
-                //dropdowns
+                // --- Dropdowns based on Tab Selection ---
                 if (selectedTab == "Income") {
 
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-
                         FieldBoxWithPlus("WALLET", selectedWallet) {
                             showWalletPicker = true
                         }
@@ -160,13 +163,31 @@ fun AddExpenseScreen(
                         }
                     }
 
-                } else {
+                } else if (selectedTab == "Transfer") {
 
+                    // 1. New Transfer Screen View (Account to Account)
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
+                        FieldBoxWithPlus("FROM ACCOUNT", selectedWallet) {
+                            showWalletPicker = true
+                        }
 
+                        FieldBoxWithPlus("TO ACCOUNT", selectedCategory) {
+                            // Using Category Picker to let the user select the destination account
+                            categoryOptions = WalletStore.wallets.map { it.name }
+                            showCategoryPicker = true
+                        }
+                    }
+
+                } else {
+
+                    // 2. Standard Expense View
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
                         FieldBoxWithPlus("ACCOUNT", selectedWallet) {
                             showWalletPicker = true
                         }
@@ -237,19 +258,36 @@ fun AddExpenseScreen(
 }
 
 // Helper function to update wallet balance
-fun updateWalletBalance(walletName: String, amount: Int, tabType: String) {
-    val walletIndex = WalletStore.wallets.indexOfFirst { it.name == walletName }
-    if (walletIndex != -1) {
-        val currentWallet = WalletStore.wallets[walletIndex]
-        val newBalance = when (tabType) {
-            "Income" -> currentWallet.balance + amount
-            "Expense" -> currentWallet.balance - amount
-            "Transfer" -> currentWallet.balance - amount
-            else -> currentWallet.balance
-        }
+// Updated helper function to handle 2-way wallet transfers
+fun updateWalletBalance(sourceWalletName: String, destinationWalletName: String, amount: Int, tabType: String) {
 
-        val updatedWallet = currentWallet.copy(balance = newBalance)
-        WalletStore.wallets[walletIndex] = updatedWallet
+    // 1. Handle regular Expenses or Income types
+    if (tabType != "Transfer") {
+        val walletIndex = WalletStore.wallets.indexOfFirst { it.name == sourceWalletName }
+        if (walletIndex != -1) {
+            val currentWallet = WalletStore.wallets[walletIndex]
+            val newBalance = when (tabType) {
+                "Income" -> currentWallet.balance + amount
+                "Expense" -> currentWallet.balance - amount
+                else -> currentWallet.balance
+            }
+            WalletStore.wallets[walletIndex] = currentWallet.copy(balance = newBalance)
+        }
+        return
+    }
+
+    // 2. Handle Transfer Type (Deduct from Source, Add to Destination)
+    val sourceIndex = WalletStore.wallets.indexOfFirst { it.name == sourceWalletName }
+    val destIndex = WalletStore.wallets.indexOfFirst { it.name == destinationWalletName }
+
+    // Ensure both accounts exist before processing transfer balances
+    if (sourceIndex != -1 && destIndex != -1 && sourceIndex != destIndex) {
+        val sourceWallet = WalletStore.wallets[sourceIndex]
+        val destWallet = WalletStore.wallets[destIndex]
+
+        // Update the reactive state array
+        WalletStore.wallets[sourceIndex] = sourceWallet.copy(balance = sourceWallet.balance - amount)
+        WalletStore.wallets[destIndex] = destWallet.copy(balance = destWallet.balance + amount)
     }
 }
 

@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 
 @Composable
 fun LoginScreen(
@@ -80,15 +82,12 @@ fun LoginScreen(
 
             OutlinedTextField(
                 value = password,
-                onValueChange = {
-                    // Only allow letters and numbers
-                    if (it.matches(Regex("^[A-Za-z0-9]*$"))) {
-                        password = it
-                    }
-                },
+                onValueChange = { password = it },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
-                isError = password.isNotEmpty() && !isPasswordValid(password)
+                // This masks the input with dots (•••••)
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
             if (error.isNotEmpty()) {
@@ -125,7 +124,13 @@ fun LoginScreen(
                         return@Button
                     }
 
-                    // Validate password (no special characters)
+                    // Validate password length (minimum 6 characters)
+                    if (password.length < 6) {
+                        error = "Password must be at least 6 characters long"
+                        return@Button
+                    }
+
+                    // Validate password format (no special characters)
                     if (!isPasswordValid(password)) {
                         error = "Password must contain only letters and numbers (no special characters)"
                         return@Button

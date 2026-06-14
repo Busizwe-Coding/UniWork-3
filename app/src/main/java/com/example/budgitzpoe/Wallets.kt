@@ -26,6 +26,10 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.budgitzpoe.ui.theme.Acid
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Composable
 fun WalletScreen(
@@ -145,12 +149,26 @@ fun TopHeader(
     modifier: Modifier,
     onMenuClick: () -> Unit
 ) {
-    val transactions = TransactionStore.transactions
-    val totalIncome = TransactionStore.transactions.filter { it.type.equals("Income", true) || it.type.equals("Credited", true) }.sumOf { it.amount }
-    val totalExpense = TransactionStore.transactions.filter { it.type.equals("Debited", true) }.sumOf { it.amount }
+    // 1. Get the current month string name (e.g., "JUNE")
+    val currentMonth = LocalDate.now()
+        .month
+        .getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+        .uppercase()
+
+    // 2. Filter transactions to only count the current month
+    val filteredTransactions = TransactionStore.transactions.filter { transaction ->
+        runCatching {
+            val date = LocalDate.parse(transaction.date, DateTimeFormatter.ofPattern("dd/MM/yy"))
+            date.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH).uppercase() == currentMonth
+        }.getOrDefault(false)
+    }
+
+    // 3. Calculate totals based ONLY on this month's filtered data
+    val totalIncome = filteredTransactions.filter { it.type.equals("Income", true) || it.type.equals("Credited", true) }.sumOf { it.amount }
+    val totalExpense = filteredTransactions.filter { it.type.equals("Debited", true) }.sumOf { it.amount }
 
     Box(
-        modifier = Modifier
+        modifier = modifier // Use the modifier passed from ConstraintLayout
             .fillMaxWidth()
             .padding(top = 75.dp, start = 16.dp, end = 16.dp)
     ) {
