@@ -143,21 +143,17 @@ All errors display user-friendly messages without crashing.
 ## Known Minor Issues
 
 - Photos are stored at full resolution (may take storage space)
-- Category deletion doesn't check if expenses exist (will be fixed in next version)
 - Date format is fixed to YYYY-MM-DD
+- Home screen number float
 
 ## Future Improvements
 
 - Export reports to CSV/PDF
 - Charts and graphs for spending patterns
-- Recurring expenses
-- Budget alerts when approaching limits
-- Multiple user profiles
-- Cloud backup option
-- Search and filter expenses
+- Budget chnages colour when limits breached
 
 ## Version
-1.0.0 - Initial Release
+1.0.3 - Initial Release
 
 ## Requirements
 - Android 6.0 (API 23) or higher
