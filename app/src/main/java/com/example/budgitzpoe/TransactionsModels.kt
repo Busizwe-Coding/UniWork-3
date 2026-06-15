@@ -30,6 +30,7 @@ data class Transaction(
     val category: String,
     val date: String,
     val description: String,
+    val account: String,
     val imageUri: String? = null
 )
 

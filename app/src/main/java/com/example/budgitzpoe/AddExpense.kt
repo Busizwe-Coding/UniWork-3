@@ -112,9 +112,11 @@ fun AddExpenseScreen(
                         category = selectedCategory, // Serves as the "To" account for transfers
                         date = "",
                         description = description,
+                        account = selectedWallet,
                         imageUri = selectedImageUri
                     )
 
+                    android.util.Log.d("DEBUG", "account saved as: '$selectedWallet'")
                     // Update wallet balance
                     updateWalletBalance(
                         sourceWalletName = selectedWallet,

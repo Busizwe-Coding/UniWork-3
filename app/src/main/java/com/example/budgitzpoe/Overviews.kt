@@ -6,6 +6,7 @@ import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -222,23 +223,29 @@ fun OverviewsScreen(
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        listOf(
+                        val tabsList = listOf(
                             "ACCOUNTS" to onAccounts,
                             "EXPENSES" to onExpenses,
                             "INCOME" to onIncome
-                        ).forEach { (label, action) ->
+                        )
+
+                        tabsList.forEach { (label, action) ->
+                            // Evaluates dynamically inside the loop for every single button entry row item
+                            val isCurrentTabClicked = (label == "EXPENSES")
+
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.Black)
+                                    .background(if (isCurrentTabClicked) Color.White else Color.Black)
+                                    .border(if (isCurrentTabClicked) 2.dp else 0.dp, Color.Black, RoundedCornerShape(8.dp))
                                     .clickable { action() }
                                     .padding(vertical = 14.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = label,
-                                    color = Color.White,
+                                    color = if (isCurrentTabClicked) Color.Black else Color.White,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
                                 )

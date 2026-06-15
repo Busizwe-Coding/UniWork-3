@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,10 +63,25 @@ class MainActivity : ComponentActivity() {
                             onOverviews = { screen = "overview" },
                             onExport = { screen = "export" },
                             onMenuClick = { menuOpen = true },
-                            onAccounts = {},
-                            onExpenses = {},
-                            onIncome = {}
+                            onAccounts = { screen = "accounts" },
+                            onExpenses = { screen = "expenses" },
+                            onIncome = { screen = "income" }
                         )
+
+                        // FIX: Added the missing Accounts screen routing rule definition
+                        "accounts" -> AccountsScreen(
+                            onRecords = { screen = "home" },
+                            onWallets = { screen = "wallet" },
+                            onOverviews = { screen = "overview" },
+                            onExport = { screen = "export" },
+                            onMenuClick = { menuOpen = true },
+                            onExpenses = { screen = "expenses" },
+                            onIncome = { screen = "income" }
+                        )
+
+                        // Placeholder for upcoming sub-tab destinations
+                        "expenses" -> Box(modifier = Modifier.fillMaxSize()) { Text("Expenses Screen coming next step") }
+                        "income" -> Box(modifier = Modifier.fillMaxSize()) { Text("Income Screen coming next step") }
 
                         "export" -> ExportScreen(
                             onMenuClick = { menuOpen = true },
@@ -81,6 +97,7 @@ class MainActivity : ComponentActivity() {
                         "badges" -> BadgesScreen(
                             onMenuClick = { menuOpen = true }
                         )
+
                         "currency" -> CurrenciesScreen(onMenuClick = { menuOpen = true })
                     }
 
@@ -101,7 +118,7 @@ class MainActivity : ComponentActivity() {
                             screen = "badges"
                         },
                         onNavigateToCurrency = {
-                            menuOpen = false;
+                            menuOpen = false
                             screen = "currency"
                         },
                         onLogout = {

@@ -18,8 +18,8 @@ object TransactionStore {
     }
 
     var transactions = mutableStateListOf(
-        Transaction(1000, "Debited", "Social", "27/04/26", "Went to a party"),
-        Transaction(4000, "Income", "Salary", "26/04/26", "Monthly salary")
+        Transaction(1000, "Debited", "Social", "27/04/26", "Went to a party", account = "Main"),
+        Transaction(4000, "Income", "Salary", "26/04/26", "Monthly salary", account = "Main")
     )
         private set
 
