@@ -54,7 +54,8 @@ fun OverviewsScreen(
     onMenuClick: () -> Unit,
     onAccounts : () -> Unit,
     onExpenses : () -> Unit,
-    onIncome : () -> Unit
+    onIncome : () -> Unit,
+    activeTab: String
 ) {
 
     var showMonths by remember { mutableStateOf(false) }
@@ -230,22 +231,21 @@ fun OverviewsScreen(
                         )
 
                         tabsList.forEach { (label, action) ->
-                            // Evaluates dynamically inside the loop for every single button entry row item
-                            val isCurrentTabClicked = (label == "EXPENSES")
+                            val isActive = label == activeTab  // make button white
 
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isCurrentTabClicked) Color.White else Color.Black)
-                                    .border(if (isCurrentTabClicked) 2.dp else 0.dp, Color.Black, RoundedCornerShape(8.dp))
+                                    .background(if (isActive) Color.White else Color.Black)
+                                    .border(if (isActive) 2.dp else 0.dp, Color.Black, RoundedCornerShape(8.dp))
                                     .clickable { action() }
                                     .padding(vertical = 14.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = label,
-                                    color = if (isCurrentTabClicked) Color.Black else Color.White,
+                                    color = if (isActive) Color.Black else Color.White,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -371,6 +371,7 @@ fun previewOverviewScreen() {
         onMenuClick = {},
         onAccounts = {},
         onExpenses = {},
-        onIncome = {}
+        onIncome = {},
+        activeTab = ""
     )
 }

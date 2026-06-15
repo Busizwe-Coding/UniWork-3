@@ -65,10 +65,10 @@ class MainActivity : ComponentActivity() {
                             onMenuClick = { menuOpen = true },
                             onAccounts = { screen = "accounts" },
                             onExpenses = { screen = "expenses" },
-                            onIncome = { screen = "income" }
+                            onIncome = { screen = "income" },
+                            activeTab = ""
                         )
 
-                        // FIX: Added the missing Accounts screen routing rule definition
                         "accounts" -> AccountsScreen(
                             onRecords = { screen = "home" },
                             onWallets = { screen = "wallet" },
@@ -79,9 +79,24 @@ class MainActivity : ComponentActivity() {
                             onIncome = { screen = "income" }
                         )
 
-                        // Placeholder for upcoming sub-tab destinations
-                        "expenses" -> Box(modifier = Modifier.fillMaxSize()) { Text("Expenses Screen coming next step") }
-                        "income" -> Box(modifier = Modifier.fillMaxSize()) { Text("Income Screen coming next step") }
+                        "expenses" -> ExpensesScreen(
+                            onRecords = { screen = "home" },
+                            onWallets = { screen = "accounts" },
+                            onOverviews = { screen = "overview" },
+                            onExport = { screen = "export" },
+                            onMenuClick = { menuOpen = true },
+                            onAccounts = { screen = "accounts" },
+                            onIncome = { screen = "income" }
+                        )
+                        "income" -> IncomeScreen(
+                            onRecords = { screen = "home" },
+                            onWallets = { screen = "accounts" },
+                            onOverviews = { screen = "overview" },
+                            onExport = { screen = "export" },
+                            onMenuClick = { menuOpen = true },
+                            onAccounts = { screen = "accounts" }, // LINKED HERE
+                            onExpenses = { screen = "expenses" }  // LINKED HERE
+                        )
 
                         "export" -> ExportScreen(
                             onMenuClick = { menuOpen = true },
